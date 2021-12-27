@@ -8,6 +8,12 @@ print('Creating network share user:')
 share_user=input('Network share user: ')
 share_password=input('Network share password: ')
 
+def gensshkey():
+    print('Generating RSA key log SSH admin')
+    system('ssh-keygen -t rsa -b 4096 -f ./KEY')
+    
+
+gensshkey()
 def openssl():
     print('Creating RSA key for SSH...')
     system('openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout ./key -out ./key')
@@ -72,7 +78,6 @@ def passfile():
     file = open('pass', 'w')
     file.writelines([share_password+'\n',share_password+'\n'])
     file.close()
-    shutil.copy('key', 'authorized_keys')
 passfile()
 def smbfile():
     file = open('smb.conf', 'w')
@@ -114,11 +119,10 @@ RUN smbpasswd -a {share_user} -s < /pass
 RUN rm -f /pass
 
 RUN mkdir /home/{admin}/.ssh
-COPY authorized_keys /home/{admin}/.ssh/
+COPY KEY.pub /home/{admin}/.ssh/authorized_keys
 RUN chown -R {admin}:{admin} /home/{admin}
 RUN chmod -R 700 /home/{admin}/.ssh/
 RUN chmod 600 /home/{admin}/.ssh/authorized_keys
-#
 
 COPY sshd_config /etc/ssh/
 COPY smb.conf /etc/samba/
