@@ -24,24 +24,19 @@ def vsftpdconf():
 listen=YES
 listen_ipv6=NO
 connect_from_port_20=YES
-
 anonymous_enable=NO
 local_enable=YES
 write_enable=YES
 chroot_local_user=YES
 allow_writeable_chroot=YES
 secure_chroot_dir=/var/run/vsftpd/empty
-
 pam_service_name=vsftpd
-
 pasv_enable=YES
 pasv_min_port=40000
 pasv_max_port=45000
-
 userlist_enable=YES
 userlist_file=/etc/vsftpd.userlist
 userlist_deny=NO
-
 rsa_cert_file=/etc/key
 rsa_private_key_file=/etc/key
 ssl_enable=YES
@@ -89,7 +84,6 @@ def smbfile():
 	netbios name = debian-1
 	security = user
 	name resolve order = bcast host
-
 [folder]
 	public = no
 	browseable = yes
@@ -105,34 +99,33 @@ def dockerfile():
 
     docker_string = f"""
 FROM debian:latest
-
 RUN apt-get update -y
 RUN apt-get install vsftpd samba openssh-server sudo -y
-
 #EDIT this and pass file:
 RUN useradd -m -p $(openssl passwd -6 {share_password}) {share_user}
 RUN useradd -m -p $(openssl passwd -6 {admin_pass}) {admin}
 RUN echo "{admin} ALL=(ALL:ALL) ALL" > /etc/sudoers
-
 COPY pass /
 RUN smbpasswd -a {share_user} -s < /pass
 RUN rm -f /pass
-
 RUN mkdir /home/{admin}/.ssh
 COPY KEY.pub /home/{admin}/.ssh/authorized_keys
 RUN chown -R {admin}:{admin} /home/{admin}
 RUN chmod -R 700 /home/{admin}/.ssh/
 RUN chmod 600 /home/{admin}/.ssh/authorized_keys
-
 COPY sshd_config /etc/ssh/
 COPY smb.conf /etc/samba/
 COPY key /etc/
 COPY vsftpd.conf /etc/vsftpd.conf
 COPY vsftpd.userlist /etc/vsftpd.userlist
-
 CMD service vsftpd start;service ssh start;service smbd start;bash
-    
+CMD chown -R {share_user}:{share_user} /home/{share_user};service vsftpd start;service ssh start;service smbd start;bash    
     """
     file.write(docker_string)
 dockerfile()
 
+#build and start docker
+print('Building docker image')
+name = input('Docker image name: ')
+system(f'docker build -t {name} .')
+print('OK')
