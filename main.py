@@ -130,5 +130,5 @@ name = input('Docker image name: ')
 system(f'docker build -t {name} .')
 
 remove('pass')
-#docker run -itd -v /mnt:/home/{share_user} --network host {name}
+print(f'docker run -itd -v /mnt:/home/{share_user} --network host {name}')
 print('OK')
