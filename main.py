@@ -1,5 +1,5 @@
 import shutil
-from os import system
+from os import system, remove
 print('Creating admin user...')
 admin=input('Admin username: ')
 admin_pass=input('Admin password: ')
@@ -128,4 +128,7 @@ dockerfile()
 print('Building docker image')
 name = input('Docker image name: ')
 system(f'docker build -t {name} .')
+
+remove('pass')
+#docker run -itd -v /mnt:/home/{share_user} --network host {name}
 print('OK')
